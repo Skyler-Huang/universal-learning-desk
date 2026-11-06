@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "title": "示例知识台",
+    "subjects": ["示例科目"],
+    "offset": 0,
+    "offsetBySubject": {},
+    "pyMap": {},
+    "ocrEngine": "本地 RapidOCR",
+    "note": "这是 universal-learning-desk 的空包模板，只用于对齐字段，不含真实资料内容。",
+    "footnote": "卡片由资料原文按语义切分，正文与原资料一致，未做改写或摘要。"
+  },
+  "chapters": [
+    {
+      "subject": "示例科目",
+      "no": 1,
+      "name": "第一章 示例章",
+      "part": "",
+      "sections": ["定义", "适用范围"],
+      "pageStart": 1,
+      "pageEnd": 2
+    }
+  ],
+  "cards": [
+    {
+      "id": "demo-0001",
+      "title": "示例卡片标题",
+      "priority": "P1",
+      "freq": "中",
+      "qtype": "案例",
+      "subject": "示例科目",
+      "chapter": 1,
+      "chapterName": "第一章 示例章",
+      "section": "",
+      "page": 1,
+      "pageStart": 1,
+      "pageEnd": 1,
+      "pdfPage": 1,
+      "source": "示例科目 / 第1章 示例章 / 文档 1（本地OCR）",
+      "ruleText": "把资料里的一段原文放进来：不改写、不补写、不摘要。卡片之间的边界按语义切，不按字数切；一条卡片要能回溯到资料的具体页码。",
+      "numbers": ["13%"],
+      "lawRefs": [],
+      "lawText": null
+    }
+  ],
+  "coverage": [],
+  "glossary": []
+}

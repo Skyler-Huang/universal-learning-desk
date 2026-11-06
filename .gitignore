@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+output/
+_work/
+.ocr_cache/
+examples/fixtures/
+examples/smoke_out/
+smoke_out/
+*.log
+.DS_Store
+
+# 教材数据包不随仓库分发（授权原因），本地构建产物也不要提交
+library/*/app_data.json
+!library/pack-template/*.json

@@ -1,0 +1,9 @@
+markitdown[all]
+PyMuPDF
+rapidocr-onnxruntime
+pypinyin
+python-pptx
+python-docx
+beautifulsoup4
+Pillow
+opencv-python-headless

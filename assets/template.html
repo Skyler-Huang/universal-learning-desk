@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html data-page-node-id="UuPBAVnf3FEj1LcigIluJC" data-theme="light" lang="zh-CN">
+<head data-page-node-id="7ZPQPGRhyIZM2uvKVCUGTv">
+<meta data-page-node-id="9ejZOga1sCjegJVbAC8v7S" charset="utf-8">
+<meta data-page-node-id="ZgmCYBqHW0SoaXhgKQ9Ogh" content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport">
+<meta data-page-node-id="FlUKcrGlDZL35Kkxu32hNZ" content="light dark" name="color-scheme">
+<title data-page-node-id="lbrGdBD6SOa3C2qORth3Lj" data-pnid-children="nrmoGdgruauNuoIvhnLkkR">CPA知识学习台</title>
+<style data-page-node-id="Dwi3caNOpcpv74WVKQx7XO" data-pnid-children="OazddNGl9lPT1H2ABLZ58G">
+:root{
+  --bg:#f5f7fa; --panel:#ffffff; --panel2:#f0f3f8; --text:#1a2230; --muted:#5c6879;
+  --line:#dde3ec; --accent:#1d4ed8; --accent-soft:#e8efff; --shadow:0 2px 10px rgba(20,35,60,.08);
+  --fact:#0f766e; --fact-bg:#e8f6f3; --infer:#b45309; --infer-bg:#fff4e3;
+  --void:#64748b; --void-bg:#edf1f6; --ext:#6d28d9; --ext-bg:#f3ecff;
+  --ocr:#a16207; --ocr-bg:#fef9c7; --danger:#b91c1c; --mark:#ffe58a;
+  --topbar-h:60px; --radius:10px;
+}
+html[data-theme="dark"]{
+  --bg:#10151d; --panel:#19212c; --panel2:#222c3a; --text:#e7edf5; --muted:#9aa9bc;
+  --line:#33404f; --accent:#7aa2ff; --accent-soft:#23355c; --shadow:0 2px 12px rgba(0,0,0,.35);
+  --fact:#5eead4; --fact-bg:#123b36; --infer:#fbbf24; --infer-bg:#43301a;
+  --void:#94a3b8; --void-bg:#263241; --ext:#c4b5fd; --ext-bg:#33245c;
+  --ocr:#fde047; --ocr-bg:#453a12; --danger:#fca5a5; --mark:#7a5b00;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.72 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif}
+a{color:var(--accent);text-decoration:none}
+button{font:inherit;cursor:pointer;background:none;border:0;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 1px}
+.hidden{display:none !important}
+
+/* ---------- 顶栏 ---------- */
+/* 顶栏自身高度用字面量，与 --topbar-h 解耦，避免「实测→写变量→顶栏变高」的循环依赖。
+   --topbar-h 仅作为侧栏/滚动偏移的布局变量，由底部脚本按实测高度同步。 */
+.topbar{position:sticky;top:0;z-index:60;height:60px;display:flex;align-items:center;gap:12px;
+  padding:0 18px;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+.brand{font-weight:800;font-size:18px;letter-spacing:.5px;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+.searchbox{flex:1;max-width:520px;position:relative}
+.searchbox input{width:100%;height:40px;padding:0 38px 0 14px;border:1px solid var(--line);border-radius:8px;
+  background:var(--panel2);color:var(--text);font-size:14px}
+.searchbox .kbd{position:absolute;right:10px;top:9px;font-size:12px;color:var(--muted);border:1px solid var(--line);
+  border-radius:4px;padding:1px 6px;background:var(--panel)}
+.topbtn{min-height:40px;min-width:44px;padding:0 12px;border:1px solid var(--line);border-radius:8px;
+  background:var(--panel2);display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px}
+.topbtn:hover{background:var(--accent-soft)}
+.hamburger{display:none}
+
+/* ---------- 布局 ---------- */
+.layout{display:flex;align-items:flex-start;gap:0}
+.sidebar{width:268px;flex:0 0 268px;position:sticky;top:var(--topbar-h);
+  height:calc(100vh - var(--topbar-h));
+  height:calc(100dvh - var(--topbar-h));   /* 移动端动态视口，避免地址栏造成底部裁切 */
+  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  background:var(--panel);border-right:1px solid var(--line);padding:14px 12px 40px}
+.main{flex:1;min-width:0;padding:22px 28px 80px;max-width:1200px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(8,15,25,.5);z-index:55}
+.overlay.on{display:block}
+
+.side-title{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:1px;margin:8px 8px 8px}
+.mod-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px}
+.mod-btn{min-height:44px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);
+  font-size:12.5px;text-align:left;line-height:1.35}
+.mod-btn.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+details.subj{margin-bottom:8px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+details.subj>summary{min-height:44px;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;
+  font-weight:700;cursor:pointer;background:var(--panel2);list-style:none}
+details.subj>summary::-webkit-details-marker{display:none}
+details.subj>summary::after{content:"▾";color:var(--muted);font-size:12px}
+details.subj[open]>summary::after{content:"▴"}
+.chap-link{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:44px;
+  padding:7px 10px 7px 14px;font-size:13px;border-top:1px solid var(--line);cursor:pointer}
+.chap-link:hover{background:var(--accent-soft)}
+.chap-link .cnt{font-size:11px;color:var(--muted);background:var(--panel2);border-radius:10px;padding:1px 7px;white-space:nowrap}
+
+/* ---------- 筛选 ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-start;margin-bottom:16px;
+  padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}
+.fgroup{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+.fgroup .lbl{font-size:12px;color:var(--muted);margin-right:2px;font-weight:700}
+.chip{min-height:32px;padding:3px 10px;border:1px solid var(--line);border-radius:16px;font-size:12.5px;background:var(--panel2)}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.filter-note{font-size:12px;color:var(--muted);margin-left:auto}
+
+/* ---------- 结果面板 ---------- */
+.results{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px;
+  box-shadow:var(--shadow);max-height:340px;overflow:auto}
+.results .rhead{padding:8px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);
+  position:sticky;top:0;background:var(--panel)}
+.res-item{display:block;width:100%;text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);min-height:44px}
+.res-item:hover{background:var(--accent-soft)}
+.res-item .rid{font-weight:700;color:var(--accent);font-size:13px;margin-right:8px}
+.res-item .rsub{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.empty{padding:26px 18px;text-align:center;color:var(--muted)}
+.empty b{color:var(--danger);font-size:16px}
+
+/* ---------- 章节与卡片 ---------- */
+.chapter{scroll-margin-top:calc(var(--topbar-h) + 14px);margin-bottom:34px}
+.chapter h2{font-size:20px;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--accent)}
+.chapter .part{font-size:12px;color:var(--muted);font-weight:600}
+.covbar{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);padding:8px 0 12px}
+.covbar span{background:var(--panel2);border-radius:6px;padding:2px 8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.card{scroll-margin-top:calc(var(--topbar-h) + 14px);position:relative;min-width:0;background:var(--panel);
+  border:1px solid var(--line);border-left:4px solid var(--ec,var(--void));border-radius:var(--radius);
+  padding:14px 15px;box-shadow:var(--shadow)}
+.card.ev-fact{--ec:var(--fact)} .card.ev-inference{--ec:var(--infer)}
+.card.ev-skeleton{--ec:var(--void)} .card.ev-external{--ec:var(--ext)} .card.ev-ocr{--ec:var(--ocr)}
+.ocr-local-tip{font-size:11px;line-height:1.5;color:var(--ocr);background:var(--ocr-bg);border-left:3px solid var(--ocr);padding:4px 8px;margin:0 0 8px;border-radius:0 5px 5px 0}
+.card-head{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.cid{font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:700;color:var(--accent)}
+.layer-badge{font-size:11px;padding:1px 7px;border-radius:10px;background:var(--ebg,var(--void-bg));
+  color:var(--ec,var(--void));font-weight:700;white-space:nowrap}
+.ev-fact{--ebg:var(--fact-bg)} .ev-inference{--ebg:var(--infer-bg)}
+.ev-skeleton{--ebg:var(--void-bg)} .ev-external{--ebg:var(--ext-bg)} .ev-ocr{--ebg:var(--ocr-bg)}
+.src-btn,.copy-btn,.note-btn{margin-left:auto;font-size:11.5px;padding:3px 8px;border:1px solid var(--line);
+  border-radius:6px;min-height:32px;background:var(--panel2)}
+.card-head .copy-btn,.card-head .note-btn{margin-left:0}
+.card h3{font-size:15px;margin:4px 0 8px;line-height:1.5}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.tag{font-size:11px;padding:1px 8px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--muted)}
+.tag.inf{color:var(--infer);border-color:var(--infer);background:var(--infer-bg)}
+.tag.warn{color:var(--danger);border-color:var(--danger)}
+.src-line{font-size:12px;color:var(--muted);margin-bottom:8px;padding:4px 8px;background:var(--panel2);border-radius:6px}
+.rule{font-size:14px;line-height:1.8;white-space:pre-wrap;word-break:break-word;margin-bottom:8px}
+.rule.void{color:var(--void)}
+.nums{font-size:12.5px;margin-bottom:6px;color:var(--muted)}
+.nums b{color:var(--fact)}
+.laws{font-size:12.5px;margin-bottom:6px;padding:5px 8px;border-radius:6px;background:var(--ext-bg);color:var(--ext)}
+.conf{font-size:12.5px;margin-bottom:6px}
+.conf a{margin-right:8px;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+.term{border-bottom:1px dashed var(--accent);cursor:pointer;color:var(--accent)}
+.table-wrap{overflow-x:auto;max-width:100%;margin:8px 0;-webkit-overflow-scrolling:touch}
+.table-wrap table{border-collapse:collapse;min-width:100%;font-size:12.5px}
+.table-wrap th,.table-wrap td{border:1px solid var(--line);padding:5px 8px;text-align:left;white-space:nowrap}
+.src-pop{display:none;position:relative;margin-top:8px;padding:10px 12px;border:1px dashed var(--accent);
+  border-radius:8px;background:var(--accent-soft);font-size:12.5px;line-height:1.7}
+.src-pop.on{display:block}
+.src-btn:hover ~ .src-pop,.src-btn:focus ~ .src-pop,.card:focus-within .src-pop.keep{display:block}
+.note-area{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.note-area textarea{width:100%;min-height:64px;border:1px solid var(--line);border-radius:6px;
+  background:var(--panel2);color:var(--text);padding:8px;font:inherit;font-size:13px}
+
+/* ---------- 其它模块 ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px}
+.panel h3{margin:0 0 10px;font-size:16px}
+.tree-row{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.tree-row .sec{color:var(--muted);flex:1}
+.gloss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.gloss-item{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--panel2)}
+.gloss-item b{color:var(--accent)}
+.gloss-item .gd{font-size:12.5px;color:var(--muted);margin-top:4px}
+.quiz-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.quiz-body{font-size:14px;white-space:pre-wrap;line-height:1.85}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;font-size:12.5px}
+.legend span{padding:3px 9px;border-radius:12px;border:1px solid var(--line)}
+.lg-fact{background:var(--fact-bg);color:var(--fact)} .lg-infer{background:var(--infer-bg);color:var(--infer)}
+.lg-void{background:var(--void-bg);color:var(--void)} .lg-ext{background:var(--ext-bg);color:var(--ext)}
+.lg-ocr{background:var(--ocr-bg);color:var(--ocr)}
+.footnote{font-size:12px;color:var(--muted);line-height:1.8;margin-top:24px;border-top:1px solid var(--line);padding-top:14px}
+
+/* ---------- 术语弹层 ---------- */
+#termPop{position:fixed;z-index:90;max-width:340px;background:var(--panel);border:1px solid var(--accent);
+  border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.22);padding:12px 14px;font-size:13px;display:none}
+#termPop b{color:var(--accent)}
+#termPop .ts{display:block;font-size:11.5px;color:var(--muted);margin-top:6px}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--text);color:var(--bg);
+  padding:9px 16px;border-radius:20px;font-size:13px;z-index:100;opacity:0;pointer-events:none;transition:opacity .25s}
+#toast.on{opacity:1}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:1024px){
+  .sidebar{position:fixed;left:0;top:var(--topbar-h);
+    height:calc(100vh - var(--topbar-h));
+    height:calc(100dvh - var(--topbar-h));
+    z-index:58;
+    transform:translateX(-100%);transition:transform .25s ease;box-shadow:var(--shadow)}
+  .sidebar.open{transform:translateX(0)}
+  .hamburger{display:inline-flex}
+  .main{padding:18px 20px 70px}
+}
+@media (max-width:700px){
+  /* 手机端顶栏换行后高度可变：min-height 用字面量，安全区由 JS 实测后同步给侧栏 */
+  .topbar{height:auto;min-height:60px;flex-wrap:wrap;
+    padding:calc(8px + env(safe-area-inset-top, 0px)) 12px 8px;gap:8px}
+  .brand{font-size:16px;width:100%;order:1}
+  .searchbox{order:3;flex:1 1 100%;max-width:none}
+  .topbtn{order:2}
+  .main{padding:16px 16px 60px}
+  .cards{grid-template-columns:minmax(0,1fr)}
+  .card{padding:11px 12px}
+  .chapter h2{font-size:18px}
+  .mod-grid{grid-template-columns:1fr 1fr}
+  .src-btn,.copy-btn,.note-btn,.chip{min-height:44px}
+  .topbtn{min-height:44px}
+}
+@media print{
+  .topbar,.sidebar,.filters,.results,.overlay,.src-btn,.copy-btn,.note-btn,.note-area,#termPop,#toast,.quiz-nav{display:none !important}
+  .main{padding:0;max-width:none}
+  .card{break-inside:avoid;box-shadow:none;border-left-width:3px}
+  .chapter{break-before:auto}
+  body{background:#fff;color:#000}
+}
+</style>
+</head>
+<body data-page-node-id="PyuIZRg6YKtrCYxqrYYQBJ">
+<header data-page-node-id="sar8tBxN6lxfQLN8mjOUAu" class="topbar">
+  <button data-page-node-id="xODChy1rytsbKhhgCycbu3" aria-label="打开侧栏" class="topbtn hamburger" id="burger"><!--pnid:bHtZMk43RCLOUsBNWXCeow-->☰</button>
+  <div data-page-node-id="BR6M8jpOy5ZDrMxs2HyfWL" class="brand"><span data-page-node-id="jVDq4ar0SyFqJXjsbbsZ6Y" class="dot"></span><!--pnid:Xq2yZnY8GNkBoca3RLsNYB-->CPA知识学习台</div>
+  <div data-page-node-id="BToL3JFrsU6hCIDCZTA2dL" class="searchbox">
+    <input data-page-node-id="0coUntS2lYAAFuCPJndjAL" aria-label="全文搜索" autocomplete="off" id="q" placeholder="搜索规则 / 数字 / 条文（按 / 聚焦）" type="search">
+    <span data-page-node-id="c9lMeqfusgAS2Nrb4alIod" class="kbd"><!--pnid:UG1iBkhuWELvay8fO1ajWD-->/</span>
+  </div>
+  <button data-page-node-id="QfwmjNEl9d9wPOnKsCtNID" aria-label="切换深浅主题" class="topbtn" id="themeBtn"><!--pnid:oX0qsMeVE3UzyNK6ZFv0OF-->🌙 深色</button>
+</header>
+<div data-page-node-id="v7a8KF7FMYjJjuCE5QmAgN" class="overlay" id="overlay"></div>
+<div data-page-node-id="gq7L6kuKsyWefoaADYQwNl" class="layout">
+  <aside data-page-node-id="zA7JazuKcPBOsSCvxEqUzO" class="sidebar" id="sidebar">
+    <div data-page-node-id="3lTQKspgyeABBCibRrjvXZ" class="side-title"><!--pnid:NY0jPxe7dXc9PFqCEfSuNg-->六大模块</div>
+    <div data-page-node-id="3vdCowc23ncQlST5XFDpFk" class="mod-grid" id="mods"></div>
+    <div data-page-node-id="OJHxi9JekdHkcvj7CrGPrA" class="side-title"><!--pnid:zRJFbCbFfpmP536Dw4ETKL-->科目 → 章节</div>
+    <div data-page-node-id="TDUi2z5KDY5hNR97Ne2alp" id="tree"></div>
+  </aside>
+  <main data-page-node-id="uMeso5KJ1pSjTl7pQeoRxK" class="main" id="main">
+    <div data-page-node-id="kNpYrdkEdGdS83wpE4N57T" class="filters" id="filters"></div>
+    <div data-page-node-id="jWqMoCjlhXDtqWpCXMeISW" class="legend">
+      <span data-page-node-id="Vm08pfevqnZBfi7yCBpws4" class="lg-fact"><!--pnid:nEFPxZWMMiUzGIKj9tbLaO-->■ 教材原文（材料有依据）</span>
+      <span data-page-node-id="jdcnnq8uv0RpIbTPC71aTI" class="lg-infer"><!--pnid:EacPq6ZYA2NPTeSMm2hyqr-->■ 学习编排（模型添加 / 推断）</span>
+      <span data-page-node-id="52jGpEF7wvrer9XpWA7Ien" class="lg-void"><!--pnid:z5RCPLNbIRK3GglJ284yi4-->■ 材料未覆盖</span>
+      <span data-page-node-id="LhWIJfHuszjjs2iXOeQXrt" class="lg-ext"><!--pnid:hUZ17UhTLyjZFfakVlWnSe-->■ 外部核验（本次未核验）</span>
+      <span data-page-node-id="246opYbmf7zv5sONSCXWFW" class="lg-ocr"><!--pnid:52xDoRBKgJSPTTZaNzE9SU-->■ OCR 识别</span>
+    </div>
+    <div data-page-node-id="7RJqQX9EQfdM1rd45XFLXH" class="results hidden" id="results"></div>
+    <div data-page-node-id="TN7Lyj5pA3GJtRfhPIPFm5" id="view"></div>
+    <div data-page-node-id="fK8rPQa1xQNUmMRx3oFKfD" class="footnote" id="footnote"></div>
+  </main>
+</div>
+<div data-page-node-id="5ubr3aOmOJnJaQ6KdSm1st" id="termPop"></div>
+<div data-page-node-id="42syw7Hp1IKdMx63SZmVEk" id="toast"></div>
+
+<script data-page-node-id="sbSV9TdKYIgPTvllTDtf1H" data-pnid-children="z67DFoPHhABFik4ZXGpIV4" id="APP_DATA" type="application/json">{"meta":{"title":"示例学习台 · 母版演示","subjects":["示例资料 A","示例资料 B"],"taxChapters":2,"jjfChapters":1,"taxPages":12,"jjfPages":8,"offset":0,"tableCount":0,"directoryTables":0,"bodyTables":0,"note":"本页为 universal-learning-desk 的母版演示数据，非真实教材内容。","noteFromUser":"运行本 Skill 处理你的资料后，此处会替换为真实的处理说明。","jjfOffset":0,"offsetBySubject":{},"ocrEngine":"本地 RapidOCR（母版演示）","jjfCardsFromOcr":0,"taxCardsFromOcr":0,"footnote":"这是 universal-learning-desk 母版演示页：7 个模块、深浅色主题、顶栏搜索与筛选、卡片标签、OCR 来源警示条、右滑关闭抽屉均可正常使用。单文件离线，无 CDN、无服务器；笔记仅保存在本地浏览器。"},"chapters":[{"subject":"示例资料 A","no":1,"name":"基础概念","part":"","sections":["定义","适用范围"],"pageStart":1,"pageEnd":6},{"subject":"示例资料 A","no":2,"name":"核心规则","part":"","sections":["适用","例外"],"pageStart":7,"pageEnd":12},{"subject":"示例资料 B","no":1,"name":"演示章节","part":"","sections":[],"pageStart":1,"pageEnd":8}],"cards":[{"id":"S1.1","title":"知识卡片是资料原文切分后的最小复习单元","priority":"P1","freq":"中","qtype":"案例","subject":"示例资料 A","chapter":1,"chapterName":"基础概念","section":"","page":1,"pageStart":1,"pageEnd":6,"source":"示例资料 A / 第1章 基础概念 / 文档 1（本地OCR）","ruleText":"知识卡片是把资料原文按段落或幻灯片切分后的最小可复习单元，每条卡片都必须能回溯到原始资料的分页锚点。纳税人应当在规定期限内办理申报，适用 13% 税率的情形不得擅自扩大。","numbers":["13%","500 万元"],"lawRefs":[{"law":"示例法","article":"12"}],"lawText":null,"effectiveDate":null,"lawVerified":false,"confusable":["S1.2"],"example":true,"table":null,"layer":"fact","anchor":"#e-S1-1","pdfPage":1,"mdAnchor":"PDF_PAGE_1","ocr_confidence":0.9821,"ocr_source":true,"needs_review":false},{"id":"S1.2","title":"OCR 来源卡片会显示局部警示条","priority":"P1","freq":"中","qtype":"案例","subject":"示例资料 A","chapter":1,"chapterName":"基础概念","section":"定义","page":2,"pageStart":1,"pageEnd":6,"source":"示例资料 A / 第1章 基础概念 / 文档 2（本地OCR）","ruleText":"OCR 来源卡片在正面显示警示条，低置信条目需核对原文。本条含不确定的识别片段 [?]，用于演示 needs_review 标记效果。","numbers":[],"lawRefs":[],"lawText":null,"effectiveDate":null,"lawVerified":false,"confusable":[],"example":false,"table":"| 项目 | 数值 |\n| --- | --- |\n| 税率 | 13% |\n| 期限 | 30 日 |","layer":"fact","anchor":"#e-S1-2","pdfPage":2,"mdAnchor":"PDF_PAGE_2","ocr_confidence":0.8234,"ocr_source":true,"needs_review":true},{"id":"S2.1","title":"推断层卡片用于区分编排信息","priority":"P0","freq":"高","qtype":"多选","subject":"示例资料 A","chapter":2,"chapterName":"核心规则","section":"","page":7,"pageStart":7,"pageEnd":12,"source":"示例资料 A / 第2章 核心规则 / 文档 7","ruleText":"优先级、考频、题型等标签属于学习编排（推断层），与资料原文分色显示，不得据此推断原文没有的内容。","numbers":[],"lawRefs":[],"lawText":null,"effectiveDate":null,"lawVerified":false,"confusable":[],"example":false,"table":null,"layer":"inference","anchor":"#e-S2-1","pdfPage":7,"mdAnchor":"PDF_PAGE_7","ocr_confidence":null,"ocr_source":false,"needs_review":false},{"id":"S2.2","title":"规范性语句会进入「行动规则」模块","priority":"P1","freq":"中","qtype":"计算","subject":"示例资料 A","chapter":2,"chapterName":"核心规则","section":"","page":8,"pageStart":7,"pageEnd":12,"source":"示例资料 A / 第2章 核心规则 / 文档 8","ruleText":"纳税人应当按照规定期限缴纳税款；不得伪造、变造、隐匿、擅自销毁账簿。符合免征条件的，可以依法申请减免。","numbers":["30 日"],"lawRefs":[],"lawText":null,"effectiveDate":null,"lawVerified":false,"confusable":[],"example":true,"table":null,"layer":"fact","anchor":"#e-S2-2","pdfPage":8,"mdAnchor":"PDF_PAGE_8","ocr_confidence":null,"ocr_source":false,"needs_review":false},{"id":"T1.1","title":"材料未覆盖的占位卡片（skeleton）","priority":"P1","freq":"中","qtype":"案例","subject":"示例资料 B","chapter":1,"chapterName":"演示章节","section":"","page":1,"pageStart":1,"pageEnd":8,"source":"示例资料 B / 第1章 演示章节 / 文档 1","ruleText":"资料未涉及该知识点时以占位卡片呈现，不做补写、不编造内容。","numbers":[],"lawRefs":[],"lawText":null,"effectiveDate":null,"lawVerified":false,"confusable":[],"example":false,"table":null,"layer":"skeleton","anchor":"#e-T1-1","pdfPage":1,"mdAnchor":"PDF_PAGE_1","ocr_confidence":null,"ocr_source":false,"needs_review":false},{"id":"T1.2","title":"外部核验层卡片","priority":"P1","freq":"中","qtype":"案例","subject":"示例资料 B","chapter":1,"chapterName":"演示章节","section":"","page":2,"pageStart":1,"pageEnd":8,"source":"示例资料 B / 第1章 演示章节 / 文档 2","ruleText":"需要外部法条或权威来源核验的条目单独标记为外部核验层，本 Skill 默认 lawVerified=false。","numbers":[],"lawRefs":[],"lawText":null,"effectiveDate":null,"lawVerified":false,"confusable":[],"example":false,"table":null,"layer":"external","anchor":"#e-T1-2","pdfPage":2,"mdAnchor":"PDF_PAGE_2","ocr_confidence":null,"ocr_source":false,"needs_review":false}],"coverage":[{"subject":"示例资料 A","no":1,"name":"基础概念","pdfStart":1,"pdfEnd":6,"pageStart":1,"pageEnd":6,"sourcePages":6,"rules":2,"numbers":2,"tables":0,"examples":1,"cards":2,"status":"母版演示数据"},{"subject":"示例资料 A","no":2,"name":"核心规则","pdfStart":7,"pdfEnd":12,"pageStart":7,"pageEnd":12,"sourcePages":6,"rules":2,"numbers":2,"tables":0,"examples":1,"cards":2,"status":"母版演示数据"},{"subject":"示例资料 B","no":1,"name":"演示章节","pdfStart":1,"pdfEnd":8,"pageStart":1,"pageEnd":8,"sourcePages":8,"rules":2,"numbers":2,"tables":0,"examples":1,"cards":2,"status":"母版演示数据"}],"glossary":[{"term":"知识卡片","def":"把资料原文按段落或幻灯片切分后的最小可复习单元。","subject":"示例资料 A","chapter":1,"page":1},{"term":"OCR 来源","def":"由图片或扫描 PDF 经本地 OCR 识别生成的卡片，低置信条目需核对原文。","subject":"示例资料 A","chapter":1,"page":2},{"term":"锚点","def":"形如 <!-- PDF_PAGE_n --> 的页码标记，用于把卡片回溯到原始资料。","subject":"示例资料 B","chapter":1,"page":1}]}</script>
+<script data-page-node-id="4ZjgohMnHKMe8IZCBlwQ39" data-pnid-children="S4ChmrR2NdYq1wbJDutyDK">
+"use strict";
+var DATA = JSON.parse(document.getElementById('APP_DATA').textContent);
+var CARDS = DATA.cards, CHAPTERS = DATA.chapters, COVERAGE = DATA.coverage, GLOSSARY = DATA.glossary;
+var MODS = [
+  ['cards','章节卡片','按章排列的全部知识卡片'],
+  ['framework','核心框架','资料的章节与节骨架'],
+  ['guide','内容导学','每章页码范围与覆盖记录'],
+  ['actions','行动规则','资料原文中的规范性规则'],
+  ['glossary','术语大全','缩写与名词解释'],
+  ['quiz','学习自检','资料例题与案例'],
+  ['notes','本地笔记','浏览器本地保存的笔记']
+];
+var SUBJECTS = (DATA.meta.subjects && DATA.meta.subjects.length) ? DATA.meta.subjects : ['资料'];
+var state = {view:'cards', q:'', f:{subject:new Set(),priority:new Set(),qtype:new Set(),freq:new Set()}};
+var NOTES_KEY = 'cpa-knowledge-desk-notes-v1';
+var notes = {};
+try { notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}'); } catch(e){ notes = {}; }
+
+function $(s){ return document.querySelector(s); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escRe(s){ return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function norm(s){ return String(s||'').replace(/\s+/g,''); }
+function toast(msg){ var t=$('#toast'); t.textContent=msg; t.classList.add('on'); setTimeout(function(){t.classList.remove('on');},1600); }
+function saveNotes(){ try{ localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); }catch(e){} }
+
+/* 术语：按长度降序，只标注前 70 个 */
+var TERMS = GLOSSARY.map(function(g){return g.term;}).filter(function(t,i,a){return a.indexOf(t)===i;})
+  .sort(function(a,b){return b.length-a.length;}).slice(0,70);
+var TERM_RE = TERMS.length ? new RegExp('('+TERMS.map(escRe).join('|')+')','g') : null;
+var TERM_MAP = {}; GLOSSARY.forEach(function(g){ if(!TERM_MAP[g.term]) TERM_MAP[g.term]=g; });
+function richText(text, q){
+  var h = esc(text);
+  if(TERM_RE) h = h.replace(TERM_RE, '<span class="term" tabindex="0" data-t="$1">$1</span>');
+  if(q){
+    var re = new RegExp(escRe(q),'gi');
+    h = h.split(/(<[^>]+>)/g).map(function(p){
+      return p.charAt(0)==='<' ? p : p.replace(re, function(m){return '<mark>'+m+'</mark>';});
+    }).join('');
+  }
+  return h;
+}
+function matches(c, q){
+  if(!q) return true;
+  var hay = norm([c.id,c.title,c.ruleText,c.source,c.chapterName,(c.numbers||[]).join(''),
+    (c.lawRefs||[]).map(function(l){return l.law+l.article;}).join('')].join(' '));
+  return hay.indexOf(norm(q)) >= 0;
+}
+function passes(c){
+  var f=state.f;
+  if(f.subject.size && !f.subject.has(c.subject)) return false;
+  if(f.priority.size && !f.priority.has(c.priority)) return false;
+  if(f.qtype.size && !f.qtype.has(c.qtype)) return false;
+  if(f.freq.size && !f.freq.has(c.freq)) return false;
+  return true;
+}
+function filtered(){ return CARDS.filter(function(c){return matches(c,state.q) && passes(c);}); }
+
+/* ---------- 侧栏 ---------- */
+function renderMods(){
+  $('#mods').innerHTML = MODS.map(function(m){
+    return '<button class="mod-btn'+(state.view===m[0]?' active':'')+'" data-view="'+m[0]+'" title="'+esc(m[2])+'">'+m[1]+'</button>';
+  }).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('.mod-btn'),function(b){
+    b.onclick=function(){ state.view=b.dataset.view; renderMods(); render(); closeDrawer(); window.scrollTo(0,0); };
+  });
+}
+function renderTree(){
+  var html='';
+  SUBJECTS.forEach(function(sub){
+    var chs=CHAPTERS.filter(function(c){return c.subject===sub;});
+    html += '<details class="subj" open><summary>'+sub+'（'+chs.length+'章）</summary>';
+    chs.forEach(function(ch){
+      var cnt=CARDS.filter(function(c){return c.subject===sub && c.chapter===ch.no;}).length;
+      html += '<div class="chap-link" data-anchor="ch-'+sub+'-'+ch.no+'"><span>'+ch.no+'. '+esc(ch.name)+'</span><span class="cnt">'+cnt+'条</span></div>';
+    });
+    html += '</details>';
+  });
+  $('#tree').innerHTML=html;
+  Array.prototype.forEach.call(document.querySelectorAll('.chap-link'),function(el){
+    el.onclick=function(){
+      state.view='cards'; renderMods(); render();
+      var id=el.dataset.anchor, t=document.getElementById(id);
+      if(t){ setTimeout(function(){t.scrollIntoView({behavior:'smooth'});},60); }
+      closeDrawer();
+    };
+  });
+}
+function closeDrawer(){ $('#sidebar').classList.remove('open'); $('#overlay').classList.remove('on'); }
+
+/* ---------- 筛选 ---------- */
+var FACETS = [
+  ['subject','科目',SUBJECTS],
+  ['priority','优先级',['P0','P1','P2']],
+  ['qtype','题型',['单选','多选','综合','计算','案例']],
+  ['freq','考频',['高','中','低']]
+];
+function renderFilters(){
+  var html='';
+  FACETS.forEach(function(f){
+    html += '<div class="fgroup"><span class="lbl">'+f[1]+'</span>';
+    f[2].forEach(function(v){
+      html += '<button class="chip'+(state.f[f[0]].has(v)?' on':'')+'" data-f="'+f[0]+'" data-v="'+v+'">'+v+'</button>';
+    });
+    html += '</div>';
+  });
+  var n=filtered().length;
+  html += '<span class="filter-note">当前 '+n+' / '+CARDS.length+' 张卡片 · 多条件可叠加</span>';
+  $('#filters').innerHTML=html;
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'),function(b){
+    b.onclick=function(){
+      var s=state.f[b.dataset.f];
+      if(s.has(b.dataset.v)) s.delete(b.dataset.v); else s.add(b.dataset.v);
+      renderFilters(); render();
+    };
+  });
+}
+
+/* ---------- 卡片 ---------- */
+var LAYER_LABEL = {fact:'资料原文',inference:'学习编排｜推断',skeleton:'材料未覆盖',external:'外部核验',ocr:'OCR 识别'};
+function cardHTML(c){
+  var layer = c.layer || 'fact';
+  var q = state.q;
+  var lawHtml = '';
+  (c.lawRefs||[]).forEach(function(l){
+    lawHtml += '<div class="laws">资料引用《'+esc(l.law)+'》第'+esc(l.article)+'条 · 法条原文/施行日期：<b>未核验</b>（chinese-law-mcp 本次未连通）</div>';
+  });
+  var numHtml = (c.numbers||[]).length ? '<div class="nums">数字与门槛（原样）：<b>'+esc(c.numbers.join(' ｜ '))+'</b></div>' : '';
+  var confHtml = (c.confusable||[]).length ? '<div class="conf">易混条目（推断，点击直达）：'+
+    c.confusable.map(function(id){return '<a href="#'+anchorOfId(id)+'">'+esc(id)+'</a>';}).join('')+'</div>' : '';
+  var tableHtml = c.table ? '<div class="table-wrap">'+mdTable(c.table)+'</div>' : '';
+  var note = notes[c.id] || '';
+  return '<article class="card ev-'+layer+'" id="'+anchorOfId(c.id)+'">'+
+    '<div class="card-head"><span class="cid">'+esc(c.id)+'</span>'+
+      '<span class="layer-badge">'+LAYER_LABEL[layer]+'</span>'+
+      '<button class="src-btn" tabindex="0" aria-label="出处">出处 ⓘ</button>'+
+      '<button class="copy-btn" data-copy="'+esc(c.id)+'">复制链接</button>'+
+      '<button class="note-btn" data-note="'+esc(c.id)+'">笔记</button></div>'+
+    '<h3>'+richText(c.title,q)+'</h3>'+
+    (c.ocr_source ? '<div class="ocr-local-tip">OCR 来源，低置信条目需核对原文'+
+      (c.needs_review ? '（本条需核对）' : '')+
+      (c.ocr_confidence!=null ? ' · 置信度 '+c.ocr_confidence : '')+'</div>' : '')+
+    '<div class="meta"><span class="tag inf">优先级 '+esc(c.priority)+'</span>'+
+      '<span class="tag inf">考频 '+esc(c.freq)+'</span>'+
+      '<span class="tag inf">题型 '+esc(c.qtype)+'</span>'+
+      '<span class="tag">'+esc(c.subject)+' 第'+c.chapter+'章</span></div>'+
+    '<div class="src-line">出处：'+richText(c.source,q)+' ｜ PDF 物理页 '+(c.pdfPage||(c.page+DATA.meta.offset))+'</div>'+
+    '<div class="rule'+(layer==='skeleton'?' void':'')+'">'+richText(c.ruleText,q)+'</div>'+
+    numHtml + lawHtml + confHtml + tableHtml +
+    '<div class="src-pop"><b>出处明细</b><br>科目：'+esc(c.subject)+'<br>章节：第'+c.chapter+'章 '+esc(c.chapterName)+
+      '<br>资料页码：第 '+c.page+' 页（'+c.pageStart+'–'+c.pageEnd+'）<br>PDF 物理页：'+(c.pdfPage||(c.page+DATA.meta.offset))+
+      '<br>证据类型：'+LAYER_LABEL[layer]+'<br>法条核验：'+(c.lawVerified?'已核验':'未核验（MCP 不可用）')+'</div>'+
+    '<div class="note-area hidden" id="note-'+esc(c.id)+'"><textarea placeholder="本地笔记，仅保存在此浏览器">'+esc(note)+'</textarea>'+
+      '<button class="topbtn" data-save="'+esc(c.id)+'">保存笔记</button></div>'+
+  '</article>';
+}
+function anchorOfId(id){ return 'e-'+id.replace(/^税-/,'税-').replace(/^经-/,'经-').replace(/\./g,'-'); }
+function mdTable(md){
+  var lines=md.split('\n').filter(function(l){return l.trim().indexOf('|')===0;});
+  var rows=lines.filter(function(l){return !/^\|[\s\-|]+\|$/.test(l.trim());});
+  var out='<table>';
+  rows.forEach(function(l,i){
+    var cells=l.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(function(x){return x.trim();});
+    out+='<tr>'+cells.map(function(x){return i===0?'<th>'+esc(x)+'</th>':'<td>'+esc(x)+'</td>';}).join('')+'</tr>';
+  });
+  return out+'</table>';
+}
+function bindCards(root){
+  Array.prototype.forEach.call(root.querySelectorAll('.src-btn'),function(b){
+    b.onclick=function(){ var p=b.parentNode.parentNode.querySelector('.src-pop'); if(p) p.classList.toggle('on'); };
+  });
+  Array.prototype.forEach.call(root.querySelectorAll('[data-copy]'),function(b){
+    b.onclick=function(){
+      var id='#'+anchorOfId(b.dataset.copy);
+      var url=location.href.split('#')[0]+id;
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(function(){toast('已复制直达链接');},function(){fallbackCopy(url);}); }
+      else fallbackCopy(url);
+    };
+  });
+  Array.prototype.forEach.call(root.querySelectorAll('[data-note]'),function(b){
+    b.onclick=function(){ var el=document.getElementById('note-'+b.dataset.note); if(el) el.classList.toggle('hidden'); };
+  });
+  Array.prototype.forEach.call(root.querySelectorAll('[data-save]'),function(b){
+    b.onclick=function(){
+      var el=document.getElementById('note-'+b.dataset.save);
+      var val=el.querySelector('textarea').value;
+      if(val.trim()) notes[b.dataset.save]=val; else delete notes[b.dataset.save];
+      saveNotes(); toast('笔记已保存到本地'); if(state.view==='notes') render();
+    };
+  });
+}
+function fallbackCopy(t){
+  var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('已复制直达链接'); }catch(e){ toast('复制失败：'+t); }
+  document.body.removeChild(ta);
+}
+
+/* ---------- 视图 ---------- */
+function renderCardsView(){
+  var list=filtered(), html='';
+  if(!list.length){
+    return '<div class="panel empty"><b>资料未涉及</b><br>没有卡片命中当前搜索或筛选条件；本学习台只呈现两本资料中可定位的原文，未命中即视为资料未涉及，不做补写。<br><span style="font-size:12px">可清空搜索词或重置筛选条件。</span></div>';
+  }
+  var groups={};
+  list.forEach(function(c){ var k=c.subject+'|'+c.chapter; (groups[k]=groups[k]||[]).push(c); });
+  SUBJECTS.forEach(function(sub){
+    CHAPTERS.filter(function(ch){return ch.subject===sub;}).forEach(function(ch){
+      var arr=groups[sub+'|'+ch.no]; if(!arr||!arr.length) return;
+      var cov=COVERAGE.filter(function(x){return x.subject===sub&&x.no===ch.no;})[0]||{};
+      html += '<section class="chapter" id="ch-'+sub+'-'+ch.no+'">'+
+        '<h2>'+esc(sub)+' · 第'+ch.no+'章 '+esc(ch.name)+'</h2>'+
+        (ch.part?'<div class="part">'+esc(ch.part)+'</div>':'')+
+        '<div class="covbar"><span>资料页 '+cov.pageStart+'–'+cov.pageEnd+'</span><span>原文 '+cov.sourcePages+' 页</span>'+
+        '<span>规则 '+cov.rules+'</span><span>数字 '+cov.numbers+'</span><span>表格 '+cov.tables+'</span>'+
+        '<span>例题 '+cov.examples+'</span><span>卡片 '+cov.cards+'</span><span>'+esc(cov.status)+'</span></div>'+
+        '<div class="cards">'+arr.map(cardHTML).join('')+'</div></section>';
+    });
+  });
+  return html;
+}
+function renderFramework(){
+  var html='<div class="panel"><h3>核心框架 · 章节骨架（来自资料目录）</h3><p style="font-size:13px;color:var(--muted)">共 '+SUBJECTS.length+' 个科目 / '+CHAPTERS.length+' 章；'+esc(DATA.meta.note||'')+'</p></div>';
+  SUBJECTS.forEach(function(sub){
+    html+='<div class="panel"><h3>'+sub+'</h3>';
+    CHAPTERS.filter(function(c){return c.subject===sub;}).forEach(function(ch){
+      var cov=COVERAGE.filter(function(x){return x.subject===sub&&x.no===ch.no;})[0]||{};
+      html+='<div class="tree-row"><a href="#ch-'+sub+'-'+ch.no+'">第'+ch.no+'章 '+esc(ch.name)+'</a>'+
+        '<span class="sec">'+(ch.sections&&ch.sections.length?ch.sections.map(esc).join(' · '):'按资料原文章节展开')+'</span>'+
+        '<span class="tag">资料 '+cov.pageStart+'–'+cov.pageEnd+' 页</span></div>';
+    });
+    html+='</div>';
+  });
+  return html;
+}
+function renderGuide(){
+  var html='<div class="panel"><h3>内容导学 · 逐章覆盖记录</h3><p style="font-size:13px;color:var(--muted)">每章均列出页码范围、原文页数、抽取数量与处理状态；未处理章节不会静默省略。</p></div>'+
+    '<div class="panel" style="border-left:4px solid var(--infer)"><h3>编排说明 · 编排层添加（非原文）</h3>'+
+    '<p style="font-size:13px;color:var(--infer);margin:0">'+esc(DATA.meta.noteFromUser)+'</p></div>';
+  SUBJECTS.forEach(function(sub){
+    html+='<div class="panel"><h3>'+sub+'</h3>';
+    COVERAGE.filter(function(c){return c.subject===sub;}).forEach(function(c){
+      var warn=c.status.indexOf('未抽取')>=0;
+      html+='<div class="tree-row"><b>第'+c.no+'章 '+esc(c.name)+'</b><span class="sec">'+
+        '资料第 '+c.pageStart+'–'+c.pageEnd+' 页（PDF '+c.pdfStart+'–'+c.pdfEnd+'）｜原文 '+c.sourcePages+
+        ' 页｜规则 '+c.rules+'｜数字 '+c.numbers+'｜表格 '+c.tables+'｜例题 '+c.examples+'｜卡片 '+c.cards+'</span>'+
+        '<span class="tag'+(warn?' warn':'')+'">'+esc(c.status)+'</span></div>';
+    });
+    html+='</div>';
+  });
+  return html;
+}
+function renderActions(){
+  var list=filtered().filter(function(c){return c.layer==='fact'&&/应当|不得|可以|必须|适用|免征|征收|缴纳|扣除|准予|按/.test(c.ruleText);});
+  return '<div class="panel"><h3>行动规则 · 资料原文中的规范性语句（'+list.length+' 条）</h3><p style="font-size:13px;color:var(--muted)">以下为事实层；优先级、考频、题型、易混条目均为学习编排（推断层），已在卡片上分色标出。</p></div>'+
+    (list.length?'<div class="cards">'+list.slice(0,120).map(cardHTML).join('')+'</div>':'<div class="panel empty">资料未涉及</div>');
+}
+function renderGlossary(){
+  var q=state.q;
+  var list=GLOSSARY.filter(function(g){return !q||norm(g.term+g.def).indexOf(norm(q))>=0;});
+  return '<div class="panel"><h3>术语大全 · 缩写与名词解释（'+list.length+' 条，定义均摘自资料原文）</h3></div>'+
+    (list.length?'<div class="gloss-grid">'+list.map(function(g){
+      return '<div class="gloss-item"><b>'+richText(g.term,q)+'</b><div class="gd">'+richText(g.def,q)+
+        '</div><div class="gd">出处：'+esc(g.subject)+' 第'+g.chapter+'章 资料第'+g.page+'页</div></div>';
+    }).join('')+'</div>':'<div class="panel empty">资料未涉及</div>');
+}
+var quizIdx=0;
+function renderQuiz(){
+  var list=CARDS.filter(function(c){return c.example;});
+  if(!list.length) return '<div class="panel empty"><b>资料未涉及</b><br>未抽取到例题/案例卡片。</div>';
+  if(quizIdx>=list.length) quizIdx=0;
+  var c=list[quizIdx];
+  return '<div class="panel"><h3>学习自检 · 资料例题与案例（'+list.length+' 题）</h3>'+
+    '<div class="quiz-nav"><button class="topbtn" id="qPrev">上一题</button><button class="topbtn" id="qNext">下一题</button>'+
+    '<span class="tag">'+(quizIdx+1)+' / '+list.length+'</span><span class="tag">'+esc(c.id)+'</span>'+
+    '<button class="topbtn" id="qShow">显示资料要点</button></div>'+
+    '<div class="quiz-body">'+richText(c.ruleText.slice(0,700),state.q)+'</div>'+
+    '<div class="src-pop" id="qAns"><b>资料要点与出处</b><br>'+richText(c.ruleText.slice(0,1200),'')+
+    '<br>出处：'+esc(c.source)+'</div>'+
+    '<p style="font-size:12px;color:var(--muted)">离线页面不做自动判分，请对照资料原文自评；答案依据即上方原文。</p></div>';
+}
+function renderNotes(){
+  var ids=Object.keys(notes);
+  if(!ids.length) return '<div class="panel empty">暂无本地笔记。在任意卡片点「笔记」即可写入，仅保存在当前浏览器。</div>';
+  var html='<div class="panel"><h3>本地笔记 · '+ids.length+' 条</h3><p style="font-size:12px;color:var(--muted)">数据保存在浏览器 localStorage，不上传、不联网。</p></div>';
+  ids.forEach(function(id){
+    var c=CARDS.filter(function(x){return x.id===id;})[0];
+    html+='<div class="panel"><b>'+esc(id)+'</b> '+(c?'<a href="#'+anchorOfId(id)+'">'+esc(c.title)+'</a>':'')+
+      '<div style="white-space:pre-wrap;margin-top:8px">'+esc(notes[id])+'</div>'+
+      '<button class="topbtn" data-del="'+esc(id)+'" style="margin-top:8px">删除</button></div>';
+  });
+  return html;
+}
+function render(){
+  var v=$('#view'), html='';
+  switch(state.view){
+    case 'framework': html=renderFramework(); break;
+    case 'guide': html=renderGuide(); break;
+    case 'actions': html=renderActions(); break;
+    case 'glossary': html=renderGlossary(); break;
+    case 'quiz': html=renderQuiz(); break;
+    case 'notes': html=renderNotes(); break;
+    default: html=renderCardsView();
+  }
+  v.innerHTML=html;
+  bindCards(v);
+  bindViewExtra();
+  renderResults();
+  renderFilters();
+  $('#footnote').textContent = DATA.meta.footnote || '单文件离线学习台 · 无 CDN · 笔记仅存本地浏览器。';
+}
+function bindViewExtra(){
+  var p=$('#qPrev'), n=$('#qNext'), s=$('#qShow');
+  if(p) p.onclick=function(){ quizIdx--; if(quizIdx<0) quizIdx=CARDS.filter(function(c){return c.example;}).length-1; render(); };
+  if(n) n.onclick=function(){ quizIdx++; render(); };
+  if(s) s.onclick=function(){ var a=$('#qAns'); if(a) a.classList.toggle('on'); };
+  Array.prototype.forEach.call(document.querySelectorAll('[data-del]'),function(b){
+    b.onclick=function(){ delete notes[b.dataset.del]; saveNotes(); render(); };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chapter h2 a, .tree-row a'),function(a){
+    a.onclick=function(e){
+      var href=a.getAttribute('href');
+      if(href && href.charAt(0)==='#' && !document.getElementById(href.slice(1))){
+        state.view='cards'; renderMods(); render();
+      }
+    };
+  });
+}
+function renderResults(){
+  var box=$('#results');
+  if(!state.q){ box.classList.add('hidden'); box.innerHTML=''; return; }
+  var hits=CARDS.filter(function(c){return matches(c,state.q)&&passes(c);});
+  box.classList.remove('hidden');
+  if(!hits.length){
+    box.innerHTML='<div class="rhead">搜索「'+esc(state.q)+'」</div><div class="empty"><b>资料未涉及</b><br>资料中未检索到该内容，本学习台不补写、不编造。</div>';
+    return;
+  }
+  box.innerHTML='<div class="rhead">搜索「'+esc(state.q)+'」命中 '+hits.length+' 张卡片（点击直达）</div>'+
+    hits.slice(0,40).map(function(c){
+      return '<button class="res-item" data-go="'+esc(c.id)+'"><span class="rid">'+esc(c.id)+'</span>'+
+        esc(c.title)+'<span class="rsub">'+esc(c.subject)+' · '+esc(c.source)+' · '+esc(c.priority)+'/'+esc(c.freq)+'/'+esc(c.qtype)+'</span></button>';
+    }).join('');
+  Array.prototype.forEach.call(box.querySelectorAll('[data-go]'),function(b){
+    b.onclick=function(){
+      state.view='cards'; renderMods();
+      var id=anchorOfId(b.dataset.go);
+      var el=document.getElementById(id);
+      if(el){ el.scrollIntoView({behavior:'smooth'}); history.replaceState(null,'','#'+id); }
+      closeDrawer();
+    };
+  });
+}
+
+/* ---------- 全局交互 ---------- */
+$('#q').addEventListener('input',function(e){ state.q=e.target.value.trim(); render(); });
+$('#q').addEventListener('keydown',function(e){ if(e.key==='Escape'){ e.target.value=''; state.q=''; render(); } });
+document.addEventListener('keydown',function(e){
+  var tag=(e.target.tagName||'').toLowerCase();
+  if(e.key==='/' && tag!=='input' && tag!=='textarea'){ e.preventDefault(); $('#q').focus(); }
+});
+$('#themeBtn').onclick=function(){
+  var d=document.documentElement;
+  var dark=d.getAttribute('data-theme')==='dark';
+  d.setAttribute('data-theme',dark?'light':'dark');
+  this.textContent=dark?'🌙 深色':'☀️ 浅色';
+  try{ localStorage.setItem('cpa-knowledge-desk-theme',dark?'light':'dark'); }catch(e){}
+};
+try{
+  var th=localStorage.getItem('cpa-knowledge-desk-theme');
+  if(th==='dark'){ document.documentElement.setAttribute('data-theme','dark'); $('#themeBtn').textContent='☀️ 浅色'; }
+}catch(e){}
+$('#burger').onclick=function(){ $('#sidebar').classList.toggle('open'); $('#overlay').classList.toggle('on'); };
+$('#overlay').onclick=closeDrawer;
+
+/* ===== 移动端抽屉手势（母版补齐；不与纵向滚动冲突） ===== */
+(function(){
+  var x0=null, y0=null, wasOpen=false;
+  document.addEventListener('touchstart',function(e){
+    if(!e.touches || e.touches.length!==1){ x0=null; return; }
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY;
+    wasOpen=$('#sidebar').classList.contains('open');
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(x0==null || !e.changedTouches || !e.changedTouches.length) return;
+    var t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0, sx=x0;
+    x0=null;
+    if(Math.abs(dx)<60 || Math.abs(dx)<Math.abs(dy)*1.3) return;   /* 纵向滚动 / 短滑忽略 */
+    if(wasOpen){ closeDrawer(); }                                    /* 右滑或左滑均关闭抽屉 */
+    else if(sx<40 && dx>0){                                          /* 从左边缘右滑打开 */
+      $('#sidebar').classList.add('open'); $('#overlay').classList.add('on');
+    }
+  },{passive:true});
+})();
+
+document.addEventListener('click',function(e){
+  var t=e.target.closest ? e.target.closest('.term') : null;
+  var pop=$('#termPop');
+  if(t){
+    var g=TERM_MAP[t.dataset.t];
+    if(g){
+      pop.innerHTML='<b>'+esc(g.term)+'</b><div>'+esc(g.def)+'</div><span class="ts">出处：'+esc(g.subject)+' 第'+g.chapter+'章 资料第'+g.page+'页（资料原文）</span>';
+      var r=t.getBoundingClientRect();
+      pop.style.left=Math.min(window.innerWidth-350,Math.max(8,r.left))+'px';
+      pop.style.top=Math.min(window.innerHeight-160,r.bottom+8)+'px';
+      pop.style.display='block';
+    }
+  } else pop.style.display='none';
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){ $('#termPop').style.display='none'; closeDrawer(); }
+  var t=e.target.closest ? e.target.closest('.term') : null;
+  if(t && (e.key==='Enter'||e.key===' ')) { e.preventDefault(); t.click(); }
+});
+window.addEventListener('hashchange',function(){
+  var id=location.hash.slice(1);
+  if(id && id.indexOf('e-')===0){
+    var el=document.getElementById(id);
+    if(el) el.scrollIntoView({behavior:'smooth'});
+  }
+});
+
+renderMods(); renderTree(); render();
+</script>
+<script>
+/* ===== 布局修复：侧栏抽屉被顶栏遮挡 =====
+   手机端顶栏会换行（标题一行 + 搜索框一行）、字体放大或刘海屏安全区都会让顶栏变高，
+   而侧栏 top / height 原来引用写死的 --topbar-h:60px，导致抽屉上部被顶栏压住且滚不到顶。
+   这里实测顶栏真实高度并写回 --topbar-h，侧栏 top、高度、章节 scroll-margin-top
+   会全部自动跟随；顶栏自身高度已改用字面量，不存在循环依赖。 */
+(function(){
+  var bar=document.querySelector('.topbar');
+  if(!bar) return;
+  function sync(){
+    var h=Math.ceil(bar.getBoundingClientRect().height);
+    if(h>0) document.documentElement.style.setProperty('--topbar-h',h+'px');
+  }
+  sync();                                                   /* 立即 */
+  window.addEventListener('resize',sync,{passive:true});      /* 窗口/分屏变化 */
+  window.addEventListener('orientationchange',function(){ setTimeout(sync,150); });
+  if(window.ResizeObserver){                                 /* 顶栏内容/字号/安全区变化 */
+    try{ new ResizeObserver(sync).observe(bar); }catch(e){}
+  }
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(sync).catch(function(){});
+  }
+  if(document.readyState==='complete') setTimeout(sync,0);
+  else window.addEventListener('load',sync);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "description": "Reusable APP_DATA knowledge packs for universal-learning-desk. Drop a pack folder here, add it to this manifest, and build it without re-running OCR.",
+  "packs": [
+    {
+      "id": "cpa-two-laws",
+      "name": "CPA 两法知识台",
+      "bundled": false,
+      "subjects": ["税法", "经济法"],
+      "cards": 1515,
+      "chapters": 26,
+      "glossary": 168,
+      "data": "cpa-two-laws/app_data.json",
+      "builder": "scripts/build_kb.py",
+      "source": "2026 年注册会计师《经济法》《税法》教材（个人学习用途）",
+      "builtExample": "https://hletian.cn/cpa/",
+      "notes": "数据包因教材授权不随仓库分发：把自有教材跑出的 app_data.json 放到 cpa-two-laws/ 下即可构建。1515 张语义卡片，数字 token 守恒；术语 168 条从卡片正文派生；页码为资料内部页序，不是出版社页码。"
+    }
+  ]
+}
